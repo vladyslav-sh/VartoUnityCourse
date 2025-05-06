@@ -3,7 +3,7 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 using System.Data;
 
-namespace Tools;
+namespace VartoUnityCourse;
 
 public class App(ITypeRegistrar typeRegistrar)
 {
@@ -40,7 +40,7 @@ public class App(ITypeRegistrar typeRegistrar)
         }
 
         var selectionPrompt = new SelectionPrompt<string>()
-            .Title("A homework showcase. Select [green]task[/]:");
+            .Title("A homework showcase. Please select a [green]task[/]:");
 
         foreach (var group in commandNameGroups.OrderByDescending(group => group.Key))
         {
@@ -51,7 +51,7 @@ public class App(ITypeRegistrar typeRegistrar)
 
         var exitCommandText = "[red]Exit[/]";
         selectionPrompt.AddChoiceGroup(
-            string.Empty, 
+            string.Empty,
             [exitCommandText]);
 
         while (true)
@@ -60,7 +60,7 @@ public class App(ITypeRegistrar typeRegistrar)
 
             var selected = AnsiConsole.Prompt(selectionPrompt);
             if (selected == exitCommandText)
-                break;  
+                break;
 
             await app.RunAsync([selected]);
         }
