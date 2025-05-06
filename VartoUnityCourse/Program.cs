@@ -14,7 +14,7 @@ namespace VartoUnityCourse
                 .ConfigureServices((context, serviceCollection) => ConfigureServices(context.Configuration, serviceCollection))
                 .Build();
 
-            await host.Services.GetRequiredService<App>().RunAsync(args);
+            await host.Services.GetRequiredService<ShowcaseApp>().RunAsync(args);
         }
 
         static void ConfigureServices(IConfiguration config, IServiceCollection services)
@@ -22,9 +22,9 @@ namespace VartoUnityCourse
             services.AddSingleton(config);
             services.AddOptions();
 
-            services.AddSingleton<App>();
+            services.AddSingleton<ShowcaseApp>();
 
-            services.AddSingleton<ITypeRegistrar>(_ => new App.ServiceCollectionRegistrar(services));
+            services.AddSingleton<ITypeRegistrar>(_ => new ShowcaseApp.ServiceCollectionRegistrar(services));
         }
     }
 }
