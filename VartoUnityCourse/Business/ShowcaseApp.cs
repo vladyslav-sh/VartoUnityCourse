@@ -6,9 +6,9 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace VartoUnityCourse
+namespace VartoUnityCourse.Business
 {
-    public partial class ShowcaseApp
+    public class ShowcaseApp
     {
         private readonly ITypeRegistrar _typeRegistrar;
 
@@ -45,8 +45,23 @@ namespace VartoUnityCourse
                 if (selected == exitCommand)
                     break;
 
-                await app.RunAsync(new[] { selected });
+                int resultCode = 0;
+
+                do
+                {
+                    resultCode = await app.RunAsync(new[] { selected });
+                    DrawALine();
+                }
+                while (resultCode == (int)ShowcaseAppResultCode.Repeat);
             }
+        }
+
+        private static void DrawALine()
+        {
+            var length = Math.Max(1, (int)(AnsiConsole.Profile.Width * 0.75));
+
+            // Draw a horizontal line of ─ chars, in grey
+            AnsiConsole.MarkupLine($"[grey]{new string('─', length)}[/]");
         }
 
         private IEnumerable<IGrouping<string, string>> RegisterCommands(CommandApp app)

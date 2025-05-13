@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Spectre.Console.Cli;
 using System.Threading.Tasks;
+using VartoUnityCourse.Business;
 
 namespace VartoUnityCourse
 {
@@ -24,8 +25,7 @@ namespace VartoUnityCourse
             services.AddOptions();
 
             services.AddSingleton<ShowcaseApp>();
-
-            services.AddSingleton<ITypeRegistrar>(_ => new ShowcaseApp.ServiceCollectionRegistrar(services));
+            services.AddSingleton<ITypeRegistrar>(_ => new ServiceCollectionRegistrar(services));
         }
     }
 }
