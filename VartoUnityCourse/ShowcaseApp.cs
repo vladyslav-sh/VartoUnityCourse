@@ -1,124 +1,80 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Spectre.Console;
+﻿using Spectre.Console;
 using Spectre.Console.Cli;
+using System;
+using System.Collections.Generic;
 using System.Data;
+using System.Linq;
+using System.Threading.Tasks;
 
-namespace VartoUnityCourse;
-
-public class ShowcaseApp(ITypeRegistrar typeRegistrar)
+namespace VartoUnityCourse
 {
-    public async Task RunAsync(IReadOnlyList<string> args)
+    public partial class ShowcaseApp
     {
-        var app = new CommandApp(typeRegistrar);
-        var tasksGroupedByLesson = RegisterCommands(app);
+        private readonly ITypeRegistrar _typeRegistrar;
 
-        var selectionPrompt = new SelectionPrompt<string>()
-            .Title("A homework showcase. Please select a [green]task[/]:");
-
-        foreach (var lesson in tasksGroupedByLesson.OrderByDescending(lesson => lesson.Key))
+        public ShowcaseApp(ITypeRegistrar typeRegistrar)
         {
+            _typeRegistrar = typeRegistrar;
+        }
+
+        public async Task RunAsync(IReadOnlyList<string> args)
+        {
+            var app = new CommandApp(_typeRegistrar);
+            var tasksGroupedByLesson = RegisterCommands(app);
+
+            var selectionPrompt = new SelectionPrompt<string>()
+                .Title("A homework showcase. Please select a [green]task[/]:");
+
+            foreach (var lesson in tasksGroupedByLesson.OrderByDescending(lesson => lesson.Key))
+            {
+                selectionPrompt.AddChoiceGroup(
+                    lesson.Key,
+                    lesson.Select(taskName => taskName));
+            }
+
+            var exitCommand = "[red]Exit[/]";
             selectionPrompt.AddChoiceGroup(
-                lesson.Key,
-                lesson.Select(taskName => taskName));
-        }
+                string.Empty,
+                new[] { exitCommand });
 
-        var exitCommand = "[red]Exit[/]";
-        selectionPrompt.AddChoiceGroup(
-            string.Empty,
-            [exitCommand]);
-
-        while (true)
-        {
-            Console.Clear();
-
-            var selected = AnsiConsole.Prompt(selectionPrompt);
-            if (selected == exitCommand)
-                break;
-
-            await app.RunAsync([selected]);
-        }
-    }
-
-    private IEnumerable<IGrouping<string, string>> RegisterCommands(CommandApp app)
-    {
-        var commands = GetType().Assembly.GetTypes()
-            .Where(type => typeof(ICommand).IsAssignableFrom(type))
-            .ToList();
-
-        var tasksGroupedByLesson = commands
-            .GroupBy(
-                commandType => commandType.Namespace!.Split('.', StringSplitOptions.RemoveEmptyEntries).Last(),
-                commandType => commandType.Name.Replace("Task", ""));
-
-        var taskNames = tasksGroupedByLesson.SelectMany(tasks => tasks).ToList();
-
-        app.Configure(config =>
-        {
-            config.PropagateExceptions();
-            var addCommandMethod = config.GetType().GetMethod("AddCommand")!;
-
-            for (var i = 0; i < commands.Count; i++)
+            while (true)
             {
-                var addCommand = addCommandMethod.MakeGenericMethod(commands[i]);
-                addCommand.Invoke(config, [taskNames[i]]);
+                Console.Clear();
+
+                var selected = AnsiConsole.Prompt(selectionPrompt);
+                if (selected == exitCommand)
+                    break;
+
+                await app.RunAsync(new[] { selected });
             }
-        });
-
-        return tasksGroupedByLesson;
-    }
-
-    public sealed class ServiceCollectionRegistrar : ITypeRegistrar
-    {
-        private readonly IServiceCollection builder;
-
-        public ServiceCollectionRegistrar(IServiceCollection builder)
-        {
-            this.builder = builder;
         }
 
-        public ITypeResolver Build()
+        private IEnumerable<IGrouping<string, string>> RegisterCommands(CommandApp app)
         {
-            return new TypeResolver(builder.BuildServiceProvider());
-        }
+            var commands = GetType().Assembly.GetTypes()
+                .Where(type => typeof(ICommand).IsAssignableFrom(type))
+                .ToList();
 
-        public void Register(Type service, Type implementation)
-        {
-            builder.AddSingleton(service, implementation);
-        }
+            var tasksGroupedByLesson = commands
+                .GroupBy(
+                    commandType => commandType.Namespace!.Split('.', StringSplitOptions.RemoveEmptyEntries).Last(),
+                    commandType => commandType.Name.Replace("Task", ""));
 
-        public void RegisterInstance(Type service, object implementation)
-        {
-            builder.AddSingleton(service, implementation);
-        }
+            var taskNames = tasksGroupedByLesson.SelectMany(tasks => tasks).ToList();
 
-        public void RegisterLazy(Type service, Func<object> func)
-        {
-            if (func is null)
+            app.Configure(config =>
             {
-                throw new ArgumentNullException(nameof(func));
-            }
+                config.PropagateExceptions();
+                var addCommandMethod = config.GetType().GetMethod("AddCommand")!;
 
-            builder.AddSingleton(service, _ => func());
-        }
-
-        private sealed class TypeResolver : ITypeResolver
-        {
-            private readonly IServiceProvider provider;
-
-            public TypeResolver(IServiceProvider provider)
-            {
-                this.provider = provider ?? throw new ArgumentNullException(nameof(provider));
-            }
-
-            public object? Resolve(Type? type)
-            {
-                if (type == null)
+                for (var i = 0; i < commands.Count; i++)
                 {
-                    return null;
+                    var addCommand = addCommandMethod.MakeGenericMethod(commands[i]);
+                    addCommand.Invoke(config, new[] { taskNames[i] });
                 }
+            });
 
-                return provider.GetService(type);
-            }
+            return tasksGroupedByLesson;
         }
     }
 }

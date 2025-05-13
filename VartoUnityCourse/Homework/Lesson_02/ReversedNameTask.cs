@@ -1,24 +1,26 @@
 ﻿using Spectre.Console.Cli;
+using System;
 
-namespace VartoUnityCourse.Homework.Lesson_02;
-
-public class ReversedNameTask : Command
+namespace VartoUnityCourse.Homework.Lesson_02
 {
-    public override int Execute(CommandContext context)
+    public class ReversedNameTask : Command
     {
-        Console.WriteLine("Welcome to the Reversed Name Task! Designed to return your last name first.\r\n");
+        public override int Execute(CommandContext context)
+        {
+            Console.WriteLine("Welcome to the Reversed Name Task! Designed to return your last name first.\r\n");
      
-        Console.Write("Please enter your first name: ");
-        var firstNameInputString = Console.ReadLine();
+            Console.Write("Please enter your first name: ");
+            var firstNameInputString = Console.ReadLine();
 
-        Console.Write("Please enter your last name: ");
-        var lastNameInputString = Console.ReadLine();
+            Console.Write("Please enter your last name: ");
+            var lastNameInputString = Console.ReadLine();
 
-        Console.WriteLine($"\r\nYour full name is: {lastNameInputString} {firstNameInputString}.");
+            Console.WriteLine($"\r\nYour full name is: {lastNameInputString} {firstNameInputString}.");
 
 
-        Console.WriteLine("\r\nPress any key to return to the menu...");
-        Console.ReadKey();
-        return 0;
+            Console.WriteLine("\r\nPress any key to return to the menu...");
+            Console.ReadKey();
+            return 0;
+        }
     }
 }
